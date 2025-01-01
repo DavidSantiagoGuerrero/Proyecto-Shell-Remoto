@@ -3,8 +3,9 @@
 #include <string.h> //para la función strcmp()
 #include <stdlib.h>
 #include <sys/socket.h> //para la APIs de socket
-#include <sys/types.h>
 #include <unistd.h> //para la función close()
+#include <assert.h>
+#include <sys/wait.h> //para usar wait()
 
 int main(int argc, char const* argv[])
 {
@@ -24,7 +25,7 @@ int main(int argc, char const* argv[])
 
 	//------Read / Write------
 	
-	//si connect devuelve -1 no hubo conexión, si devuelve 0 sí se conectó exitosamente
+	//si connect devuelve -1 no hubo conexión, si devuelve 0 si se conectó exitosamente
 	int connectStatus = connect(sockD, (struct sockaddr*)&servAddr,	sizeof(servAddr));
 
 	if(connectStatus == -1){
@@ -34,22 +35,52 @@ int main(int argc, char const* argv[])
 
 	printf("Si quiere ver la lista de comandos escriba 'comandos'.\n");
 
-	while(connectStatus == 0){ //si connecStatus es -1 (no hay conexión con el servidor) nunca entra al while
+	while(1) {
 		
 		printf("\nEscriba el comando que le va a mandar al servidor: \n");
 
-		fgets(comando, sizeof(comando), stdin); //registra todo el comando escrito por el cliente en la array comando
-        comando[strcspn(comando, "\n")] = '\0'; // Remover saltos de línea o espacios al final
-		
-		send(sockD, comando, sizeof(comando), 0); //le envia la array de comando al servidor
+		// Usar fgets en lugar de scanf para capturar toda la línea
+        memset(comando, 0, sizeof(comando)); // Limpiar el buffer
+        fgets(comando, sizeof(comando), stdin); //coger toda la consulta
 
-		char strData[2048]; //definimos un array para guardar la respuesta del servidor
-		recv(sockD, strData, sizeof(strData), 0); //recibe la respuesta del servidor
+		comando[strcspn(comando, "\n")] = '\0'; // Eliminar el salto de línea
 
-		printf("\nMessage: %s\n", strData); //imprime la respuesta del servidor
+		// Se crea un proceso hijo
+		pid_t pid = fork();
+		assert(pid != -1);
 
-		if (strcmp(comando, "salida") == 0){ //si el comando es "salida" se cierra la conexión con el servidor
-			connectStatus = -1;
+		if (pid == 0) {
+
+			// Enviar el comando al servidor
+			send(sockD, comando, strlen(comando), 0);
+
+			char strData[2048]; //definimos un array para guardar la respuesta del servidor
+			ssize_t recvSize = recv(sockD, strData, sizeof(strData), 0); //recibe la respuesta del servidor
+
+			if (recvSize > 0) {
+                printf("\nMessage: %s\n", strData); //imprime la respuesta del servidor
+            } else {
+                printf("Error al recibir datos del servidor.\n");
+				exit(1);
+            }
+
+			if (strcmp(comando, "salida") == 0){ //si el comando es "salida" se cierra la conexión con el servidor
+				// Cerrar conexión y terminar el proceso hijo
+				exit(1); // Indica al padre que el cliente quiere salir
+			}
+
+			exit(0);
+		}
+
+		else {
+			int status;
+			wait(&status); // Espera al hijo y captura su estado
+
+			if (WIFEXITED(status) && WEXITSTATUS(status) == 1) { //exit(1);
+				// Si el hijo indica "salida", cerrar el bucle
+				printf("cerrando la conexión.\n");
+				break;
+			}
 		}
 	}
 
