@@ -23,6 +23,9 @@ int main(int argc, char const* argv[])
 	servAddr.sin_port = htons(9001); //usar un puerto que no se esté usando
 	servAddr.sin_addr.s_addr = INADDR_ANY;
 
+	// conexion al equipo que funciona como servidor
+	inet_pton(AF_INET, "192.168.0.125", &servAddr.sin_addr);
+
 	//------Read / Write------
 	
 	//si connect devuelve -1 no hubo conexión, si devuelve 0 si se conectó exitosamente
