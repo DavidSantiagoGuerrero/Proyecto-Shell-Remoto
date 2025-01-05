@@ -74,7 +74,9 @@ int main(int argc, char const* argv[])
 				ssize_t bytesRead = recv(clientSocket, strData, sizeof(strData) - 1, 0);
 
 				if (bytesRead <= 0) {
-					exit(1); // Error o desconexión del cliente
+				    printf("El cliente ha cerrado la conexión.\n");
+   				    close(clientSocket);
+    				    exit(1);
 				}
 
 				strData[bytesRead] = '\0'; // Aseguramos que el buffer sea una cadena terminada en '\0'
@@ -95,10 +97,10 @@ int main(int argc, char const* argv[])
 					if (send(clientSocket, response, sizeof(response), 0) < 0) {
  					   perror("Error enviando datos al cliente");
 					}
-				} 
+				}
 				else if (strncmp(strData, "cd ", 3) == 0) {
 					char *ruta = strData + 3;
-					
+
 					ejecutar_cd(ruta, response);
 					if (send(clientSocket, response, sizeof(response), 0) < 0) {
  					   perror("Error enviando datos al cliente");
@@ -170,16 +172,18 @@ int main(int argc, char const* argv[])
 					}
 				}
 
-				else { 
+				else {
 					char response[] = "Comando no reconocido"; //definimos un array para guardar la respuesta del servidor
 					send(clientSocket, response, strlen(response), 0); //manda al cliente el mensaje comando no reconocido
 				}
-			} 
+			}
 
 			else {
 				int status;
 				wait(&status); // Espera al hijo y captura su estado
-
+				if (WIFEXITED(status)) {
+ 				   printf("Proceso hijo terminado con código: %d\n", WEXITSTATUS(status));
+				}
 				if (WIFEXITED(status) && WEXITSTATUS(status) == 1) {
 					// Si el hijo indica "salida == exit(1)", cerrar el bucle
 					printf("cerrando la conexión con el cliente.\n");
