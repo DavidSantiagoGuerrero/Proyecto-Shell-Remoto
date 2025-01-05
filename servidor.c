@@ -30,26 +30,35 @@ int main(int argc, char const* argv[])
 	inicializar_tiempo_servidor();
 	//crear un servidor socket similar a lo que se hizo en el programa cliente
 	int servSockD = socket(AF_INET, SOCK_STREAM, 0);
+	if (servSockD < 0) {
+    		perror("Error al crear el socket del servidor");
+    		return EXIT_FAILURE;
+	}
+
 	struct sockaddr_in servAddr; 	//definir la dirección del servidor
 
 	//llenar la estructura con la información del servidor
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_port = htons(9001);
 	servAddr.sin_addr.s_addr = INADDR_ANY;
-	
-	//bind socket a la IP y puerto especificados 
-	bind(servSockD, (struct sockaddr*)&servAddr, sizeof(servAddr));
+
+	//bind socket a la IP y puerto especificados
+	if (bind(servSockD, (struct sockaddr*)&servAddr, sizeof(servAddr)) < 0) {
+	    perror("Error al enlazar el socket a la dirección");
+	    close(servSockD);
+	    return EXIT_FAILURE;
+	}
 	listen(servSockD, 1); //escuchar para conexiones
 
 	while(1) { // Aceptar solicitudes al servidor
 		int clientSocket = accept(servSockD, NULL, NULL); //numero int para guardar el socket del cliente
 
 		if (clientSocket < 0) {
-			perror("Error en accept.\n");
+			perror("Error al aceptar la conexión del cliente");
 			continue;  // Continuar esperando más conexiones
-		} else {
-			printf("Cliente conectado exitosamente.\n");
 		}
+		printf("Cliente conectado exitosamente.\n");
+
 
 		while(1) { // creacion de un nuevo proceso al realizarse una nueva peticion al servidor
 			pid_t pid = fork();
