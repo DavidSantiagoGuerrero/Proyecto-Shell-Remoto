@@ -6,12 +6,11 @@
 - David Santiago Guerrero Delgado (2324594-3743)
 - Jhonier Mendez Bravo (2372226-3743)
 - Cristian Daniel Guaza Mejia (2372225-3743)
+- Sergio Andres Rodriguez Trujillo (2372227-3743)
 
 En este proyecto nosotros desarrollamos una aplicación cliente/servidor la cual permite a un usuario ejecutar comandos en un computador remoto. Esta aplicación cliente/servidor tiene como cliente al usuario que ejecuta los comandos y el servidor es el computador remoto  donde se ejecutan los comandos.
 
-## CÓMO EJECUTAR EN WINDOWS:
-
-## CÓMO EJECUTAR EN LINUX:
+## CÓMO EJECUTAR USANDO LINUX:
 Usando "Virtual Box":
 
 En una terminal ejecutar el comando "ifconfig" y buscar la IP de la interfaz de red activa a la que estan conectados los equipos, luego buscar la interfaz de red principal en nuestro caso es "enp0s3", despues buscar la direccion IP de la VM, deberias ver una linea como esta:
