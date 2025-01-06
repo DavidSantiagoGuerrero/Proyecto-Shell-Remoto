@@ -7,6 +7,24 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#define SALIDA "Gracias por usar nuestra shell remota"
+
+#define COMANDOS \
+    "Comandos disponibles:\n" \
+	"1. salida: cerrar la conexión\n" \
+	"2. ls: listar archivos\n" \
+	"3. pwd: mostrar el directorio actual\n" \
+	"4. cat <archivo>: mostrar el contenido de un archivo\n" \
+	"5. cd <directorio>: cambiar el directorio actual\n" \
+	"6. tree: mostrar estructura de directorios\n" \
+	"7. head <archivo>: mostrar las primeras lineas de un archivo\n" \
+	"8. uptime : muestra el tiempo que lleva el servidor funcionando\n" \
+	"9. date : muestra la fecha del sistema\n" \
+	"10. calc : realiza una operacion sencilla"
+
+#define NOT_FOUND "Comando no reconocido"
+#define BUFFER_SIZE 1024
+
 // Variable global para guardar el tiempo de inicio del servidor
 time_t tiempo_inicio;
 
@@ -31,9 +49,9 @@ void ejecutar_cd(const char *ruta, char *response) {
         if (strlen(ruta) == 0) {
             strcpy(response, "Error: No se especificó una ruta válida\n");
         } else if (chdir(ruta) == 0) {
-            snprintf(response, 2048, "Directorio cambiado a: %s\n", ruta); //cambie sizeof(response) por el tamaño del array por un warning
+            snprintf(response, BUFFER_SIZE, "Directorio cambiado a: %s\n", ruta); //cambie sizeof(response) por el tamaño del array por un warning
         } else {
-            snprintf(response, 2048, "Error: No se pudo cambiar al directorio: %s\n", ruta);
+            snprintf(response, BUFFER_SIZE, "Error: No se pudo cambiar al directorio: %s\n", ruta);
         }
 }
 
@@ -42,23 +60,23 @@ void ejecutar_cat(const char *filename, char *response) {
     FILE* file = fopen(filename, "r");
 
     if (file) {
-        fread(response, 1, 2048 - 1, file);
+        fread(response, 1, BUFFER_SIZE - 1, file);
         fclose(file);
     } else {
-        snprintf(response, 2048, "Error abriendo archivo: %s", strerror(errno));
+        snprintf(response, BUFFER_SIZE, "Error abriendo archivo: %s", strerror(errno));
     }
 }
 
 // retorna la direccion de un directorio
 void ejecutar_pwd(char *response) {
-    getcwd(response, 1024);
+    getcwd(response, BUFFER_SIZE);
 }
 
 // muestra la estrucutura de un directorio
 void ejecutar_tree(const char *path, char *response, int level) {
     DIR *dir = opendir(path);
     if (dir == NULL) {
-        snprintf(response, 2048, "Error: No se pudo abrir el directorio %s\n", path);
+        snprintf(response, BUFFER_SIZE, "Error: No se pudo abrir el directorio %s\n", path);
         return;
     }
 
@@ -77,7 +95,7 @@ void ejecutar_tree(const char *path, char *response, int level) {
         strcat(response, "\n");
 
         // Construir la ruta completa
-        char subPath[1024];
+        char subPath[BUFFER_SIZE];
         snprintf(subPath, sizeof(subPath), "%s/%s", path, entry->d_name);
 
         // Verificar si es un directorio
@@ -93,11 +111,11 @@ void ejecutar_tree(const char *path, char *response, int level) {
 void ejecutar_head(const char *filename, char *response, int num_lines) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        snprintf(response, 2048, "Error abriendo archivo: %s\n", strerror(errno));
+        snprintf(response, BUFFER_SIZE, "Error abriendo archivo: %s\n", strerror(errno));
         return;
     }
 
-    char line[1024];
+    char line[BUFFER_SIZE];
     int count = 0;
     response[0] = '\0'; // limpiar la respuesta
 
@@ -124,7 +142,7 @@ void ejecutar_uptime(char *response) {
     int minutos = (segundos_transcurridos - (horas * 3600)) / 60;
     int segundos = (int)segundos_transcurridos % 60;
 
-    snprintf(response, 2048, "El servidor ha estado en funcionamiento por: %d horas, %d minutos y %d segundos.\n",
+    snprintf(response, BUFFER_SIZE, "El servidor ha estado en funcionamiento por: %d horas, %d minutos y %d segundos.\n",
              horas, minutos, segundos);
 }
 
@@ -132,7 +150,7 @@ void ejecutar_uptime(char *response) {
 void ejecutar_date(char *response) {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-    strftime(response, 1024, "Fecha y hora actual: %Y-%m-%d %H:%M:%S\n", t);
+    strftime(response, BUFFER_SIZE, "Fecha y hora actual: %Y-%m-%d %H:%M:%S\n", t);
 }
 
 // hace un calculo sencillo
@@ -167,5 +185,5 @@ void ejecutar_calc(const char *input, char *response) {
             return;
     }
 
-    snprintf(response, 2048, "Resultado: %.2lf\n", result);
+    snprintf(response, BUFFER_SIZE, "Resultado: %.2lf\n", result);
 }
