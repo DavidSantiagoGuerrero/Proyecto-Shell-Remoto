@@ -110,32 +110,6 @@ void ejecutar_head(const char *filename, char *response, int num_lines) {
     fclose(file);
 }
 
-// muestra las ultimas lineas de un archivo
-// void ejecutar_tail(const char *filename, char *response, int num_lines) {
-//     FILE *file = fopen(filename, "r");
-//     if (file == NULL) {
-//         snprintf(response, 2048, "Error abriendo archivo: %s\n", strerror(errno));
-//         return;
-//     }
-
-//     char lines[num_lines][1024]; // Buffer circular para almacenar las últimas líneas
-//     int count = 0;
-//     response[0] = '\0'; // Asegurarse de limpiar la respuesta
-
-//     while (fgets(lines[count % num_lines], sizeof(lines[0]), file) != NULL) {
-//         count++;
-//     }
-
-//     int start = (count >= num_lines) ? count % num_lines : 0;
-//     int displayed = (count < num_lines) ? count : num_lines;
-
-//     for (int i = 0; i < displayed; i++) {
-//         strcat(response, lines[(start + i) % num_lines]);
-//     }
-
-//     fclose(file);
-// }
-
 // Inicializa el tiempo de inicio del servidor
 void inicializar_tiempo_servidor() {
     tiempo_inicio = time(NULL);
